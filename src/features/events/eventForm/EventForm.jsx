@@ -1,3 +1,4 @@
+/* global google */
 import React from 'react';
 import { Segment, Header, Button } from 'semantic-ui-react';
 import cuid from 'cuid';
@@ -10,6 +11,7 @@ import MyTextInput from '../../../app/common/form/MyTextInput';
 import MyTextArea from '../../../app/common/form/MyTextArea';
 import MySelectInput from '../../../app/common/form/MySelectInput';
 import MyDateInput from '../../../app/common/form/MyDateInput';
+import MyPlaceInput from '../../../app/common/form/MyPlaceInput';
 import { categoryData } from '../../../app/api/categoryOptions';
 
 export default function EventForm({
@@ -23,8 +25,14 @@ export default function EventForm({
     title: '',
     category: '',
     description: '',
-    city: '',
-    venue: '',
+    city: {
+      address: '',
+      latLng: null
+    },
+    venue: {
+      address: '',
+      latLng: null
+    },
     date: '',
   };
 
@@ -32,8 +40,12 @@ export default function EventForm({
     title: Yup.string().required('You must provide a title'),
     category: Yup.string().required('You must provide a category'),
     description: Yup.string().required(),
-    city: Yup.string().required(),
-    venue: Yup.string().required(),
+    city: Yup.object().shape({
+      address: Yup.string().required('City is required')
+    }),
+    venue: Yup.object().shape({
+      address: Yup.string().required('Venue is required')
+    }),
     date: Yup.string().required(),
   });
 
@@ -75,7 +87,7 @@ export default function EventForm({
           history.push('/events');
         }}
       >
-        {({ isSubmitting, dirty, isValid }) => (
+        {({ isSubmitting, dirty, isValid, values }) => (
           <Form className='ui form'>
             <Header sub color='teal' content='Event Details' />
             <MyTextInput 
@@ -93,13 +105,19 @@ export default function EventForm({
               rows={3}
             />
             <Header sub color='teal' content='Event Location Details' />
-            <MyTextInput 
+            <MyPlaceInput 
               name='city'
               placeholder='City'
             />
-            <MyTextInput 
+            <MyPlaceInput 
               name='venue'
+              disabled={!values.city.latLng}
               placeholder='Venue'
+              options={{
+                location: new google.maps.LatLng(values.city.latLng),
+                radius: 1000,
+                types: ['establishment']
+              }}
             />
             <MyDateInput 
               name='date'
